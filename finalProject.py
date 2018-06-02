@@ -23,13 +23,15 @@ stockCatalogAll = [{'name': 'Internet & Catalog Retail', 'id': '1'}, {'name':'In
 
 #Fake Menu Items
 stock = {'symbol': '', 'id': '1', 'close_price': 0.00, 'data': ''}
-listOfStocks = [stock]
+listOfStocks = []
 items = [ {'name':'Cheese Pizza', 'description':'made with fresh cheese', 'price':'$5.99','course' :'Entree', 'id':'1', 'restaurant_id': '1'}, {'name':'Chocolate Cake','description':'made with Dutch Chocolate', 'price':'$3.99', 'course':'Dessert','id':'2', 'restaurant_id':'1'},{'name':'Caesar Salad', 'description':'with fresh organic vegetables','price':'$5.99', 'course':'Entree','id':'3', 'restaurant_id':'2'},{'name':'Iced Tea', 'description':'with lemon','price':'$.99', 'course':'Beverage','id':'4', 'restaurant_id':'3'},{'name':'Spinach Dip', 'description':'creamy dip with fresh spinach','price':'$1.99', 'course':'Appetizer','id':'5', 'restaurant_id':'1'} ]
 item =  {'name':'Cheese Pizza','description':'made with fresh cheese','price':'$5.99','course' :'Entree', 'id': '1', 'restaurant_id': '1'}
 
 
 
-
+# This method takes a sticker and creates a stock object 
+# Parameters 
+# Returns 
 def createStockObject(ticker): 
 	startTime = datetime.date.today()-datetime.timedelta(days=365)
 	df1 = web.DataReader(ticker, 'morningstar',
@@ -43,15 +45,25 @@ def createStockObject(ticker):
 	stock['id'] = str(len(listOfStocks))
 	stock['close_price'] = df1.loc[df1['Date'] == (pd.to_datetime(yesterday))]['Close'].reset_index()
 	stock['close_price'] = str(stock['close_price']['Close'].to_string(index=False))
-	stock['data'] = df1['Close']
+	#stock['data'] = df1['Close']
 	return stock.copy()
+
+
+def populateListOfStocks(tickers): 
+	for ticker in tickers: 
+		stockObject = createStockObject(ticker)
+		listOfStocks.append(stockObject)
+		listOfStocksCopy = listOfStocks[:]
+	return listOfStocksCopy
+
 
 @app.route('/')
 def main(): 
 	stock1 = createStockObject('aapl')
 	print "\n" + str(stock1['symbol']) + "\n" + str(stock1['id']) + "\n" + str(stock1['close_price'])
-	return "\n" + str(stock1['symbol']) + "\n" + str(stock1['id']) + "\n" + str(stock1['close_price'])
-
+	listOfStocks = populateListOfStocks(['aapl', 'msft', 'atvi', 'fico', 'ea'])
+	print listOfStocks
+	return render_template('listOfStocks.html', listOfStocks= listOfStocks, sector = "Technology")
 
 if __name__ == '__main__':
 	app.debug = True 
