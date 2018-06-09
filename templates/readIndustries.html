@@ -7,6 +7,8 @@
 			{{industry.name}}
 			</br>
 			<a href="{{url_for('updateIndustry', industry_id=industry.id)}}">Edit this Industry</a>
+		</br>
+			<a href="{{url_for('deleteIndustry', industry_id=industry.id)}}">Delete this Industry</a>
 			</br>
 		</br>
 	{%endfor%} 

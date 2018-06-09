@@ -54,12 +54,18 @@ def updateIndustry(industry_id):
 def deleteIndustry(industry_id): 
 	session = openSession() 
 	deleteThisIndustry = session.query(Industry).filter_by(id=industry_id).one()
-	print str(editIndustry.name)
+	print str(deleteThisIndustry.name)
 	if request.method == "POST":
-		session.delete(deleteThisIndustry)
-		flash("{0} has been sucessfully deleted".format(deleteThisIndustry.name))
-		session.commit()
-		return redirect(url_for('readIndustries'))
+		if request.form['deleteSelection'] == 'yes':
+			session.delete(deleteThisIndustry)
+			flash("{0} has been sucessfully deleted".format(deleteThisIndustry.name))
+			session.commit()
+			session.close()
+			return redirect(url_for('readIndustries'))
+		
+		else:
+			session.close()
+			return redirect(url_for('readIndustries'))
 	else:
 		return render_template('deleteIndustry.html', industry=deleteThisIndustry)
 
