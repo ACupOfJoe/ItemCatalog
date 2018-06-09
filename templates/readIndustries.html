@@ -1,0 +1,20 @@
+<html>
+<head>
+</head>
+<body>
+	<h1>Here is the list of industries</h1>
+	{%for industry in industries%}
+			{{industry.name}}
+			</br>
+			<a href="{{url_for('updateIndustry', industry_id=industry.id)}}">Edit this Industry</a>
+			</br>
+		</br>
+	{%endfor%} 
+</br>
+</br>
+</br>
+
+	<a href="{{url_for('createIndustry')}}">Create New Industry</a>
+	
+</body>
+</html>
