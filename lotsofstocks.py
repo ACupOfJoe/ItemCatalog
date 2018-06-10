@@ -35,18 +35,19 @@ Results:
 
 """
 def createStockObject(ticker, industry_id): 
-	startTime = datetime.date.today()-datetime.timedelta(days=3)
+	startTime = datetime.date.today()-datetime.timedelta(days=4)
 	print "Readin Data"
 	df1 = web.DataReader(ticker, 'morningstar', 
 	           	startTime,
 	            datetime.date.today(), retry_count=0).reset_index()
 	print "Read Data"
 	today= datetime.datetime.today()
-	yesterday = today - timedelta(days=1)
+	yesterday = today - timedelta(days=2)
 	yesterday = yesterday.strftime("%Y-%m-%d")
-	close_price = df1.loc[df1['Date'] == (pd.to_datetime(yesterday))]['Close'].reset_index()
+	close_price = df1['Close'].tail(1)
 	close_price = str(close_price.to_string(index=False))
 	print "Set up variables"
+	print close_price[0:]
 	return Stock(ticker=ticker, close_price=close_price, industry_id=industry_id)
 	
 user1 = User(name="Joseph", email="joevasquez927@live.com", picture=None)

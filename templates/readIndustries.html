@@ -4,7 +4,7 @@
 <body>
 	<h1>Here is the list of industries</h1>
 	{%for industry in industries%}
-			{{industry.name}}
+			<a href="{{url_for('readStocks', industry_id=industry.id)}}">{{industry.name}}</a>
 			</br>
 			<a href="{{url_for('updateIndustry', industry_id=industry.id)}}">Edit this Industry</a>
 		</br>

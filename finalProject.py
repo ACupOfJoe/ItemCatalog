@@ -16,10 +16,12 @@ def openSession():
 def readIndustries():
 	session = openSession()
 	industries = session.query(Industry).order_by(Industry.name.asc())
+	for i in industries:
+		print type(i.id)
 	session.close()
 	return render_template('readIndustries.html', industries=industries)
 
-@app.route('/industries/new', methods=['GET', 'POST'])
+@app.route('/industries/new/', methods=['GET', 'POST'])
 def createIndustry(): 
 	session = openSession()
 	if request.method == "POST":
@@ -33,7 +35,7 @@ def createIndustry():
 	else: 
 		return render_template('createIndustry.html')
 
-@app.route('/industries/update/<int:industry_id>', methods=['GET', 'POST'])
+@app.route('/industries/update/<int:industry_id>/', methods=['GET', 'POST'])
 def updateIndustry(industry_id): 
 	session = openSession()
 	editIndustry = session.query(Industry).filter_by(id=industry_id).one()
@@ -50,7 +52,7 @@ def updateIndustry(industry_id):
 	else:
 		return render_template('updateIndustry.html', industry=editIndustry)
 
-@app.route('/industries/delete/<int:industry_id>', methods=['GET', 'POST'])
+@app.route('/industries/delete/<int:industry_id>/', methods=['GET', 'POST'])
 def deleteIndustry(industry_id): 
 	session = openSession() 
 	deleteThisIndustry = session.query(Industry).filter_by(id=industry_id).one()
@@ -69,6 +71,12 @@ def deleteIndustry(industry_id):
 	else:
 		return render_template('deleteIndustry.html', industry=deleteThisIndustry)
 
+@app.route('/industries/<int:industry_id>/')
+def readStocks(industry_id): 
+	session = openSession()
+	industry = session.query(Industry).filter_by(id=industry_id).one()
+	stocks=session.query(Stock).filter_by(industry_id=industry_id)
+	return render_template('readStocks.html', industry=industry, stocks=stocks)
 
 @app.route('/HelloWorld')
 def main(): 
