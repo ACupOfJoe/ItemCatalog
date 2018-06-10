@@ -1,0 +1,15 @@
+<html>
+<head>
+</head>
+<body>
+	<h1>Here is the list of stocks for the {{sector}} industry</h1>
+	{%for stock in stocks%}
+			{{stock['symbol']}}
+			</br>
+			{{stock['close_price']}}
+			</br>
+			</br>
+	{%endfor%} 
+	
+</body>
+</html>
