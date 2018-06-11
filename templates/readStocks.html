@@ -2,13 +2,13 @@
 <head>
 </head>
 <body>
-	<h1>Here is the list of stocks for the {{industry.name}} Industry</h1>
+	<h1>Here is the List of Stocks for the {{industry.name}} Industry</h1>
 	{%for stock in stocks%}
 			{{stock.ticker}}
 		</br>
 			{{stock.close_price}}
 			</br>
-			<a href="{{url_for('updateIndustry', industry_id=industry.id)}}">Edit this Stock</a>
+			<a href="{{url_for('updateStock', industry_id=industry.id, stock_id=stock.id)}}">Edit this Industry</a>
 		</br>
 			<a href="{{url_for('deleteIndustry', industry_id=industry.id)}}">Delete this Stock</a>
 			</br>
@@ -18,7 +18,7 @@
 </br>
 </br>
 
-	<a href="{{url_for('createStock', industry_id=industry_id)}}">Create New Stock</a>
+	<a href="{{url_for('createStock', industry_id=industry.id)}}">Create New Stock</a>
 	
 </body>
 </html>

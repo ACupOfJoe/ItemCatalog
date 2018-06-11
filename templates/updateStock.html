@@ -1,0 +1,15 @@
+<html>
+<body>
+	<h1>Update {{stock.ticker}}</h1>
+	<form action ="{{url_for('updateStock', industry_id=industry.id, stock_id=stock_id)}}" method='POST'>
+	<p>Stock ticker:</p>
+	<input type='text', size='30', name='ticker'>
+	<input type='submit' value='Create'>
+	<a href="{{url_for('readStocks', industry_id=industry_id)}}">Cancel</a>
+	</form>
+</br>
+
+
+
+</body>
+</html>

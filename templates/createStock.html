@@ -1,0 +1,10 @@
+<html>
+<body> 
+	<h1>Create a New Stock</h1>
+	<form action='{{url_for("createStock", industry_id=industry_id)}}' method="POST">
+	<p>Stock Ticker:</p>
+	<input type='text', size='30', name='ticker'>
+	<input type='submit' value='Create'>
+	</form>
+</body>
+</html>
