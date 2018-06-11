@@ -1,0 +1,13 @@
+<html>
+<body>
+	<h1>Delete {{stock.ticker}}</h1>
+	<form action ="{{url_for('deleteStock', industry_id=industry.id, stock_id=stock.id)}}" method='POST'>
+	<input type='radio' name='deleteSelection' value="yes">Yes </br>
+	<input type='radio' name='deleteSelection' value="no">No </br>
+	<input type="submit" name="delete">
+	<a href="{{url_for('readStocks', industry_id=industry_id)}}">Cancel</a>
+</form>
+
+
+</body>
+</html>

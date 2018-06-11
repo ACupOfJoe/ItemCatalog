@@ -13,6 +13,36 @@ import pandas_datareader.data as web
 
 app = Flask(__name__)
 
+# JSON APIs to view Restaurant Information
+@app.route('/industries/<int:industry_id>/stocks/JSON')
+def stockListJSON(industry_id):
+	session = openSession()
+	industry = session.query(Industry).filter_by(id=industry_id).one()
+	stocks = session.query(Stock).filter_by(
+		industry_id=industry_id).all()
+	session.close()
+	return jsonify(stocks=[stock.serialize for stock in stocks])
+
+
+@app.route('/industries/<int:industry_id>/stocks/<int:stock_id>/JSON')
+def stockJSON(industry_id, stock_id):
+	session = openSession()
+	stock = session.query(Stock).filter_by(id=stock_id).one()
+	session.close()
+	return jsonify(stock=stock.serialize)
+
+@app.route('/JSON')
+@app.route('/industries/JSON')
+def indsutriesJSON():
+	session = openSession()
+	industries = session.query(Industry).all()
+	session.close()
+	return jsonify(industries=[industry.serialize for industry in industries])
+
+
+
+
+
 def openSession(): 
 	engine = create_engine('sqlite:///stocksbyindustrywithusers.db')
 	Base.metadata.bind = engine 
@@ -145,6 +175,28 @@ def updateStock(industry_id, stock_id):
 			return redirect(url_for('readStocks', industry_id=industry_id, industry=industry))
 	else:
 		return render_template('updateStock.html', stock=originalStock, stock_id=stock_id, industry=industry, industry_id=industry_id)
+
+@app.route('/industries/<int:industry_id>/stocks/<int:stock_id>/delete/', methods=['GET', 'POST'])
+def deleteStock(industry_id, stock_id):
+	session = openSession() 
+	deleteThisStock = session.query(Stock).filter_by(id=stock_id, industry_id=industry_id).one()
+	industry = session.query(Industry).filter_by(id=industry_id).one()
+	print str(deleteThisStock.ticker)
+	if request.method == "POST":
+		if request.form['deleteSelection'] == 'yes':
+			session.delete(deleteThisStock)
+			flash("{0} has been sucessfully deleted".format(deleteThisStock.ticker))
+			session.commit()
+			session.close()
+			return redirect(url_for('readStocks', industry_id=industry_id))
+		
+		else:
+			session.close()
+			return redirect(url_for('readStocks', industry_id=industry_id))
+	else:
+		return render_template('deleteStock.html', stock=deleteThisStock, industry_id=industry_id, industry=industry)
+
+
 
 @app.route('/HelloWorld')
 def main(): 
