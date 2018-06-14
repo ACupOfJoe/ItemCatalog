@@ -1,11 +1,11 @@
-from sqlalchemy import create_engine 
-from sqlalchemy.orm import sessionmaker 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from database_setup import Base, Industry, Stock, User
 import datetime
 from datetime import timedelta
 import numpy as np
-import pandas as pd 
+import pandas as pd
 pd.core.common.is_list_like = pd.api.types.is_list_like
 import pandas_datareader.data as web
 
@@ -25,45 +25,53 @@ DBSession = sessionmaker(bind=engine)
 # session.rollback()
 session = DBSession()
 
-"""This method takes in a ticker symbol uses web.Datareader to find the closing price of the stock
-
-Inputs: 
-ticker: String representing the ticker for the stock you want to add 
+"""This method takes in a ticker symbol uses web.Datareader to find the closing
+price of the stock
+Inputs:
+ticker: String representing the ticker for the stock you want to add
 catalog_id: Integer representing which catalog the stock object belogs to
 
 Results:
 
 """
-def createStockObject(ticker, industry_id): 
-	startTime = datetime.date.today()-datetime.timedelta(days=4)
-	print "Readin Data"
-	df1 = web.DataReader(ticker, 'morningstar', 
-	           	startTime,
-	            datetime.date.today(), retry_count=0).reset_index()
-	print "Read Data"
-	today= datetime.datetime.today()
-	yesterday = today - timedelta(days=2)
-	yesterday = yesterday.strftime("%Y-%m-%d")
-	close_price = df1['Close'].tail(1)
-	close_price = str(close_price.to_string(index=False))
-	print "Set up variables"
-	print close_price[0:]
-	return Stock(ticker=ticker, close_price=close_price, industry_id=industry_id)
-	
+
+
+def createStockObject(ticker, industry_id):
+    startTime = datetime.date.today()-datetime.timedelta(days=4)
+    print "Readin Data"
+    df1 = web.DataReader(
+                ticker, 'morningstar',
+                startTime,
+                datetime.date.today(), retry_count=0).reset_index()
+    print "Read Data"
+    today = datetime.datetime.today()
+    yesterday = today - timedelta(days=2)
+    yesterday = yesterday.strftime("%Y-%m-%d")
+    close_price = df1['Close'].tail(1)
+    close_price = str(close_price.to_string(index=False))
+    print "Set up variables"
+    print close_price[0:]
+    return Stock(
+        ticker=ticker, close_price=close_price,
+        industry_id=industry_id)
+
 user1 = User(name="Joseph", email="joevasquez927@live.com", picture=None)
 session.add(user1)
-session.commit() 
+session.commit()
 
-print "Added user1" 
-industry1 = Industry(name="Independent Power and Renewable Electricity Producers", user_id=user1.id)
+print "Added user1"
+industry1 = Industry(
+    name="Independent Power and Renewable Electricity Producers",
+    user_id=user1.id)
 session.add(industry1)
-session.commit() 
-print "Added industry1" 
+session.commit()
+print "Added industry1"
 industry2 = Industry(name="Software", user_id=user1.id)
 session.add(industry2)
 session.commit()
 print "Added industry2"
-industry3 = Industry(name="Trading Companies and Distributors", user_id=user1.id)
+industry3 = Industry(name="Trading Companies and Distributors",
+                     user_id=user1.id)
 session.add(industry3)
 session.commit()
 print "Added industry3"
@@ -92,10 +100,10 @@ session.add(stock6)
 session.commit()
 print "Added stock6"
 stock7 = createStockObject('COLM', industry3.id)
-session.add(stock7) 
-session.commit() 
+session.add(stock7)
+session.commit()
 print "Added stock7"
-stock8 = createStockObject('LAKE', industry3.id) 
+stock8 = createStockObject('LAKE', industry3.id)
 session.add(stock8)
 session.commit()
 print "Added stock8"

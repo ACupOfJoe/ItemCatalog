@@ -1,0 +1,28 @@
+<html>
+<head>
+</head>
+<body>
+	<h1>Here is the List of Stocks for the {{industry.name}} Industry</h1>
+	{%for stock in stocks%}
+			{{stock.ticker}}
+		</br>
+			{{stock.close_price}}
+			</br>
+			<a href="{{url_for('updateStock', industry_id=industry.id, stock_id=stock.id)}}">Edit this Industry</a>
+		</br>
+			<a href="{{url_for('deleteStock', industry_id=industry.id, stock_id=stock.id)}}">Delete this Stock</a>
+			</br>
+		</br>
+	{%endfor%} 
+</br>
+</br>
+</br>
+
+	{%if 'username' not in session %}
+	<a href="{{url_for('showLogin')}}">Click Here to Log in </a>
+	{% else %}
+	<a href="{{url_for('disconnect')}}">Disconnect</a>}
+	{% endif %} 
+	
+</body>
+</html>
