@@ -1,13 +1,12 @@
 from flask import (Flask, render_template, request, url_for,
                    redirect, jsonify, flash)
+from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database_setup import User, Stock, Industry, Base
+from database_setup import User, Stock, Industry, Base, createUser, getUserInfo, getUserID
 
-from database_setup import Base, Industry, Stock, User
 import datetime
 from datetime import timedelta
-import numpy as np
 import pandas as pd
 pd.core.common.is_list_like = pd.api.types.is_list_like
 import pandas_datareader.data as web
@@ -50,7 +49,7 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
     url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' \
-          % slogin_session['access_token']
+          % login_session['access_token']
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     if result['status'] == '200':
@@ -74,12 +73,7 @@ def disconnect():
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
-            del login_session['gplus_id']
 
-        del login_session['username']
-        del login_session['email']
-        del login_session['picture']
-        del login_session['provider']
         flash("You've been sucessfully logged out.")
         return redirect(url_for('readIndustries'))
 
@@ -139,7 +133,7 @@ def gconnect():
 
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
-    if stored_access_token is not None and gplus_id == stored_gplus_id:
+    if stored_access_token is not None  and gplus_id == stored_gplus_id:
         response = make_response(json.dumps(
             'Current user is already connected.'), 200)
         response.headers['Content-Type'] = 'application/json'
@@ -157,12 +151,11 @@ def gconnect():
     answer = requests.get(userinfo_url, params=params)
 
     data = answer.json()
-    login_session['provider'] = 'google'
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
 
-    # See if a user exists, if it doesn't make a new one
+    # See if a user exists, if it doesn't make a new .one_or_none()
 
     output = ''
     output += '<h1>Welcome, '
@@ -177,27 +170,6 @@ def gconnect():
     return output
 
 
-def createUser(login_session):
-    newUser = User(
-        name=login_session['username'], email=login_session['email'],
-        picture=login_session['picture'])
-    session.add(newUser)
-    session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
-    return user.id
-
-
-def getUserInfo(user_id):
-    user = session.query(User).filter_by(email=login_session['email'])
-    return user.id
-
-
-def getUserID(email):
-    try:
-        user = session.query(User).filter_by(email=email).one()
-        return user.id
-    except:
-        return None
 
 # JSON APIs to view Restaurant Information
 
@@ -205,7 +177,7 @@ def getUserID(email):
 @app.route('/industries/<int:industry_id>/stocks/JSON')
 def stockListJSON(industry_id):
     session = openSession()
-    industry = session.query(Industry).filter_by(id=industry_id).one()
+    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()()
     stocks = session.query(Stock).filter_by(
         industry_id=industry_id).all()
     session.close()
@@ -215,7 +187,7 @@ def stockListJSON(industry_id):
 @app.route('/industries/<int:industry_id>/stocks/<int:stock_id>/JSON')
 def stockJSON(industry_id, stock_id):
     session = openSession()
-    stock = session.query(Stock).filter_by(id=stock_id).one()
+    stock = session.query(Stock).filter_by(id=stock_id).one_or_none()()
     session.close()
     return jsonify(stock=stock.serialize)
 
@@ -236,6 +208,16 @@ def openSession():
     session = DBSession()
     return session
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' in login_session:
+            return f(*args, **kwargs)
+        else:
+            flash("You are not allowed to access there")
+            return redirect('/login')
+    return decorated_function
+
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/industries/", methods=['GET', 'POST'])
@@ -250,10 +232,11 @@ def readIndustries():
         return render_template('readIndustries.html', industries=industries)
 
 
+
+
 @app.route('/industries/create/', methods=['GET', 'POST'])
+@login_required
 def createIndustry():
-    if 'username' not in login_session:
-        return redirect('/login')
     session = openSession()
     if request.method == "POST":
         newIndustry = Industry(name=request.form['name'])
@@ -267,11 +250,10 @@ def createIndustry():
 
 
 @app.route('/industries/update/<int:industry_id>/', methods=['GET', 'POST'])
+@login_required
 def updateIndustry(industry_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     session = openSession()
-    editIndustry = session.query(Industry).filter_by(id=industry_id).one()
+    editIndustry = session.query(Industry).filter_by(id=industry_id).one_or_none()
     if request.method == "POST":
         if request.form['name']:
             editIndustry.name = request.form['name']
@@ -284,12 +266,11 @@ def updateIndustry(industry_id):
 
 
 @app.route('/industries/delete/<int:industry_id>/', methods=['GET', 'POST'])
+@login_required
 def deleteIndustry(industry_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     session = openSession()
     deleteThisIndustry = session.query(Industry).filter_by(
-        id=industry_id).one()
+        id=industry_id).one_or_none()
     if request.method == "POST":
         if request.form['deleteSelection'] == 'yes':
             session.delete(deleteThisIndustry)
@@ -312,7 +293,7 @@ def deleteIndustry(industry_id):
 @app.route('/industries/<int:industry_id>/stocks', methods=['GET', 'POST'])
 def readStocks(industry_id):
     session = openSession()
-    industry = session.query(Industry).filter_by(id=industry_id).one()
+    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()
     stocks = session.query(Stock).filter_by(industry_id=industry_id)
     return render_template(
         'readStocks.html', industry=industry, stocks=stocks,
@@ -321,9 +302,8 @@ def readStocks(industry_id):
 
 @app.route('/industries/<int:industry_id>/stocks/create',
            methods=['GET', 'POST'])
+@login_required
 def createStock(industry_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     session = openSession()
     if request.method == "POST":
         newStock = createStockObject(
@@ -360,13 +340,12 @@ def createStockObject(ticker, industry_id):
 
 @app.route('/industries/<int:industry_id>/stocks/<int:stock_id>/update/',
            methods=['GET', 'POST'])
+@login_required
 def updateStock(industry_id, stock_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     session = openSession()
-    industry = session.query(Industry).filter_by(id=industry_id).one()
+    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()()
     originalStock = session.query(Stock).filter_by(industry_id=industry_id,
-                                                   id=stock_id).one()
+                                                   id=stock_id).one_or_none()()
     if request.method == "POST":
         if request.form['ticker']:
             updateStock = createStockObject(
@@ -388,13 +367,12 @@ def updateStock(industry_id, stock_id):
 
 @app.route('/industries/<int:industry_id>/stocks/<int:stock_id>/delete/',
            methods=['GET', 'POST'])
+@login_required
 def deleteStock(industry_id, stock_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     session = openSession()
     deleteThisStock = session.query(Stock).filter_by(
-        id=stock_id, industry_id=industry_id).one()
-    industry = session.query(Industry).filter_by(id=industry_id).one()
+        id=stock_id, industry_id=industry_id).one_or_none()()
+    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()()
     if request.method == "POST":
         if request.form['deleteSelection'] == 'yes':
             session.delete(deleteThisStock)

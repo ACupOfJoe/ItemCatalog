@@ -2,7 +2,7 @@
 <head>
 </head>
 <body>
-	<h1>Here Is The List Of Stocks For The {{industry.name}} Industry</h1>
+	<h1>Here is the List of Stocks for the {{industry.name}} Industry</h1>
 	{%for stock in stocks%}
 			{{stock.ticker}}
 		</br>
@@ -18,6 +18,13 @@
 </br>
 </br>
 
+
+	{%if 'username' not in session %}
+	<a href="{{url_for('showLogin')}}">Click Here to Log in </a>
+	{% else %}
+	<a href="{{url_for('disconnect')}}">Disconnect</a>}
+	{% endif %} 
+	
 	<a href="{{url_for('createStock', industry_id=industry.id)}}">Create New Stock</a>
 	
 </body>
