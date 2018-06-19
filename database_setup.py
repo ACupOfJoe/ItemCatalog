@@ -50,7 +50,7 @@ class Industry(Base):
 
 	id = Column(Integer, primary_key=True)
 	name = Column(String(100), nullable="False")
-	user_id = Column(Integer, ForeignKey('user.id'))
+	user_id = Column(String, ForeignKey('user.name'))
 	user = relationship(User)
 
 # Return object data in easily serializeable format"""
