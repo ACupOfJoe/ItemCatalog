@@ -58,8 +58,8 @@ def createStockObject(ticker, industry_id):
 user1 = User(name="Joseph", email="joevasquez927@live.com", picture=None)
 session.add(user1)
 session.commit()
-
 print "Added user1"
+
 industry1 = Industry(
     name="Independent Power and Renewable Electricity Producers",
     user_id=user1.id)

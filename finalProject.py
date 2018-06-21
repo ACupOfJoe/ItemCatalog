@@ -3,7 +3,7 @@ from flask import (Flask, render_template, request, url_for,
 from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database_setup import User, Stock, Industry, Base, createUser, getUserInfo, getUserID
+from database_setup import User, Stock, Industry, Base
 
 import datetime
 from datetime import timedelta
@@ -48,46 +48,11 @@ def showLogin():
     return render_template('login.html', STATE=state)
 
 
-@app.route('/gdisconnect')
-def gdisconnect():
-    """
-    gdisconnect: This method disconnects the user and takes out all of their information'
-    from the session 
-    Args:
-       No arguments 
-    Returns:
-        returns a JSON response of successfully disconnected or not successfully disconnected.  
-    """
-    access_token = login_session.get('access_token')
-    if access_token is None:
-        response = make_response(
-            json.dumps('Current user not connected.'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' \
-          % login_session['access_token']
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[0]
-    if result['status'] == '200':
-        del login_session['access_token']
-        del login_session['gplus_id']
-        del login_session['username']
-        del login_session['email']
-        del login_session['picture']
-        response = make_response(json.dumps('Successfully disconnected.'), 200)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-    else:
-        response = make_response(
-            json.dumps('Failed to revoke token for given user.', 400))
-        response.headers['Content-Type'] = 'application/json'
-        return response
 
 
 @app.route('/disconnect')
-
 def disconnect():
-     """
+    """
     disconnect: This method disconnects the user using the gdisconnect method. Allows multiple types of 
     disconnects to be used
     Args:
@@ -96,11 +61,12 @@ def disconnect():
        Flashes a message for success or failure and then redirects to the readIndustries.html template.
     """
     if 'provider' in login_session:
-        if login_session['provider'] == 'google':
+        print ("Provider is in login session")
+        if login_session['provider'] == 'google': 
             gdisconnect()
-
-        flash("You've been sucessfully logged out.")
-        return redirect(url_for('readIndustries'))
+            flash("You've been sucessfully logged out.")
+            print("Performing gdisconnect")
+            return redirect(url_for('readIndustries'))
 
     else:
         flash("You were not logged in to begin with!")
@@ -108,15 +74,7 @@ def disconnect():
 
 
 @app.route('/gconnect', methods=['POST'])
- 
 def gconnect():
-    """
-    gconnect: This method connects the user using their gmail id. 
-    Args:
-       No arguments 
-    Returns:
-        An html template showing the user is logged in.   
-    """
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -127,8 +85,7 @@ def gconnect():
 
     try:
         # Upgrade the authorization code into a credentials object
-        oauth_flow = flow_from_clientsecrets(
-            'client_secrets_google.json', scope='')
+        oauth_flow = flow_from_clientsecrets('client_secrets_google.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
@@ -161,22 +118,21 @@ def gconnect():
     if result['issued_to'] != CLIENT_ID:
         response = make_response(
             json.dumps("Token's client ID does not match app's."), 401)
+        print "Token's client ID does not match app's."
         response.headers['Content-Type'] = 'application/json'
         return response
 
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
-    if stored_access_token is not None  and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps(
-            'Current user is already connected.'), 200)
+    if stored_access_token is not None and gplus_id == stored_gplus_id:
+        response = make_response(json.dumps('Current user is already connected.'),
+                                 200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
     # Store the access token in the session for later use.
     login_session['access_token'] = credentials.access_token
     login_session['gplus_id'] = gplus_id
-    login_session['provider'] = 'google'
-    response = make_response(json.dumps('Successfully connected user.', 200))
 
     # Get user info
     userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
@@ -184,11 +140,11 @@ def gconnect():
     answer = requests.get(userinfo_url, params=params)
 
     data = answer.json()
+
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
-
-    # See if a user exists, if it doesn't make a new .one_or_none()
+    login_session['provider'] = 'google'
 
     output = ''
     output += '<h1>Welcome, '
@@ -196,12 +152,43 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += 'style = "width: 300px;'
-    output += "height: 300px;border-radius: 150px;-webkit-border-radius: "
-    output += "150px;-moz-border-radius: 150px;>"
+    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
+    print "done!"
     return output
 
+    # DISCONNECT - Revoke a current user's token and reset their login_session
+
+
+@app.route('/gdisconnect')
+def gdisconnect():
+    access_token = login_session.get('access_token')
+    if access_token is None:
+        print 'Access Token is None'
+        response = make_response(json.dumps('Current user not connected.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    print 'In gdisconnect access token is %s', access_token
+    print 'User name is: '
+    print login_session['username']
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[0]
+    print 'result is '
+    print result
+    if result['status'] == '200':
+        del login_session['access_token']
+        del login_session['gplus_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        response = make_response(json.dumps('Successfully disconnected.'), 200)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    else:
+        response = make_response(json.dumps('Failed to revoke token for given user.', 400))
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
 
 # JSON APIs to view Restaurant Information
@@ -209,7 +196,7 @@ def gconnect():
 
 @app.route('/industries/<int:industry_id>/stocks/JSON')
 def stockListJSON(industry_id):
-     """
+    """
     stockListJSON: This method gets the list of stocks in JSON format 
     Args:
        No arguments 
@@ -226,7 +213,7 @@ def stockListJSON(industry_id):
 
 @app.route('/industries/<int:industry_id>/stocks/<int:stock_id>/JSON')
 def stockJSON(industry_id, stock_id):
-     """
+    """
     stockJSON: This method gets a stock in JSON foramt  
     Args:
        No arguments 
@@ -242,7 +229,7 @@ def stockJSON(industry_id, stock_id):
 @app.route('/JSON')
 @app.route('/industries/JSON')
 def industriesJSON():
-     """
+    """
     industriesJSON: This method gets the industries name's in JSON format  
     Args:
        No arguments 
@@ -280,22 +267,20 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'username' in login_session:
+            print ("Username is in login session")
             return f(*args, **kwargs)
         else:
+            print("Username is not in login session")
             flash("You are not allowed to access there")
             return redirect('/login')
     return decorated_function
 
-def userAuthorized(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs): 
-        if login_session['username'] == 
 
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/industries/", methods=['GET', 'POST'])
 def readIndustries():
-     """
+    """
     readIndustries: This method reads out all the industries and returns two different html pages based on 
     whether the user is logged in or not. 
     Args:
@@ -305,6 +290,9 @@ def readIndustries():
     """
     session = openSession()
     industries = session.query(Industry).order_by(Industry.name.asc())
+    if 'username' in login_session:
+        print("hello")
+        print (login_session['username'])
     if 'username' not in login_session:
         session.close()
         return render_template('publicIndustries.html', industries=industries)
@@ -349,9 +337,10 @@ def updateIndustry(industry_id):
         Returns an html used to update an industry if the method is GET. If the method is a POST updates the current industry, 
         and then returns to the readIndustries page 
     """
+
     session = openSession()
     editIndustry = session.query(Industry).filter_by(id=industry_id).one_or_none()
-    if request.method == "POST" and editIndustry.userId = :
+    if request.method == "POST":
         if request.form['name']:
             editIndustry.name = request.form['name']
             flash('Industy Successfully Edited {0}'.format(editIndustry.name))
@@ -397,7 +386,7 @@ def deleteIndustry(industry_id):
 @app.route('/industries/<int:industry_id>/', methods=['GET', 'POST'])
 @app.route('/industries/<int:industry_id>/stocks', methods=['GET', 'POST'])
 def readStocks(industry_id):
-     """
+    """
     readStocks: This method reads out all the stocks and returns two different html pages based on 
     whether the user is logged in or not. 
     Args:
@@ -483,9 +472,9 @@ def updateStock(industry_id, stock_id):
         and then returns to the readStocks page 
     """
     session = openSession()
-    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()()
+    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()
     originalStock = session.query(Stock).filter_by(industry_id=industry_id,
-                                                   id=stock_id).one_or_none()()
+                                                   id=stock_id).one_or_none()
     if request.method == "POST":
         if request.form['ticker']:
             updateStock = createStockObject(
@@ -520,8 +509,8 @@ def deleteStock(industry_id, stock_id):
     """
     session = openSession()
     deleteThisStock = session.query(Stock).filter_by(
-        id=stock_id, industry_id=industry_id).one_or_none()()
-    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()()
+        id=stock_id, industry_id=industry_id).one_or_none()
+    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()
     if request.method == "POST":
         if request.form['deleteSelection'] == 'yes':
             session.delete(deleteThisStock)
@@ -538,14 +527,6 @@ def deleteStock(industry_id, stock_id):
         return render_template(
             'deleteStock.html', stock=deleteThisStock,
             industry_id=industry_id, industry=industry)
-
-
-@app.route('/HelloWorld')
-def main():
-    stock1 = createStockObject('aapl')
-    stocks = populateListOfStocks(['aapl', 'msft', 'atvi', 'fico', 'ea'])
-    return render_template(
-        'showStocks.html', stocks=stocks, sector="Technology")
 
 if __name__ == '__main__':
     app.secret_key = "Super Secret Key"
