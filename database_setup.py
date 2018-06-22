@@ -4,31 +4,25 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 
 
+Base = declarative_base()
 
 
-
-
-
-
-Base = declarative_base() 
-
-
-class User(Base): 
+class User(Base):
     """
-    Registered user information is stored in db. 
+    Registered user information is stored in db.
     """
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False) 
-    email = Column(String(250), nullable=False) 
+    name = Column(String(250), nullable=False)
+    email = Column(String(250), nullable=False)
     picture = Column(String(250), nullable=True)
 
 
 class Industry(Base):
     """
-    Industry information is stored in db 
-    """ 
+    Industry information is stored in db
+    """
 
     __tablename__ = 'industry'
 
@@ -40,15 +34,15 @@ class Industry(Base):
 # Return object data in easily serializeable format"""
     @property
     def serialize(self):
-        return { 
+        return {
             'name': self.name,
             'id': self.id
         }
 
 
-
-class Stock(Base): 
-    """This Stock class holds all of the stock tickers and their closing price"""
+class Stock(Base):
+    """This Stock class holds all of the stock tickers
+    and their closing price"""
     __tablename__ = 'stock'
 
     id = Column(Integer, primary_key=True)
@@ -57,10 +51,10 @@ class Stock(Base):
     industry_id = Column(Integer, ForeignKey('industry.id'))
     user_id = Column(String, ForeignKey('user.name'))
 
- # Return obejct data in an easily serializable format
+# Return obejct data in an easily serializable format
     @property
     def serialize(self):
-        return { 
+        return {
             'ticker': self.ticker,
             'id': self.id,
             'close_price': self.close_price,

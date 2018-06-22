@@ -8,6 +8,7 @@ from database_setup import User, Stock, Industry, Base
 import datetime
 from datetime import timedelta
 import pandas as pd
+#Must change name of file because of version of pandas that is downloaded.
 pd.core.common.is_list_like = pd.api.types.is_list_like
 import pandas_datareader.data as web
 
@@ -194,7 +195,7 @@ def stockListJSON(industry_id):
        The list of stocks for a specific industry in JSON format 
     """
     session = openSession()
-    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()()
+    industry = session.query(Industry).filter_by(id=industry_id).one_or_none()
     stocks = session.query(Stock).filter_by(
         industry_id=industry_id).all()
     session.close()
@@ -211,7 +212,7 @@ def stockJSON(industry_id, stock_id):
        The stock based on industry id and stock_id in JSON format. 
     """
     session = openSession()
-    stock = session.query(Stock).filter_by(id=stock_id).one_or_none()()
+    stock = session.query(Stock).filter_by(id=stock_id).one_or_none()
     session.close()
     return jsonify(stock=stock.serialize)
 
