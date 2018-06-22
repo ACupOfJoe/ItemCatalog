@@ -61,11 +61,9 @@ def disconnect():
        Flashes a message for success or failure and then redirects to the readIndustries.html template.
     """
     if 'provider' in login_session:
-        print ("Provider is in login session")
         if login_session['provider'] == 'google': 
             gdisconnect()
             flash("You've been sucessfully logged out.")
-            print("Performing gdisconnect")
             return redirect(url_for('readIndustries'))
 
     else:
@@ -118,7 +116,6 @@ def gconnect():
     if result['issued_to'] != CLIENT_ID:
         response = make_response(
             json.dumps("Token's client ID does not match app's."), 401)
-        print "Token's client ID does not match app's."
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -154,7 +151,6 @@ def gconnect():
     output += login_session['picture']
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
-    print "done!"
     return output
 
     # DISCONNECT - Revoke a current user's token and reset their login_session
@@ -164,18 +160,12 @@ def gconnect():
 def gdisconnect():
     access_token = login_session.get('access_token')
     if access_token is None:
-        print 'Access Token is None'
         response = make_response(json.dumps('Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    print 'In gdisconnect access token is %s', access_token
-    print 'User name is: '
-    print login_session['username']
     url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
-    print 'result is '
-    print result
     if result['status'] == '200':
         del login_session['access_token']
         del login_session['gplus_id']
@@ -267,10 +257,8 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'username' in login_session:
-            print ("Username is in login session")
             return f(*args, **kwargs)
         else:
-            print("Username is not in login session")
             flash("You are not allowed to access there")
             return redirect('/login')
     return decorated_function
@@ -290,9 +278,6 @@ def readIndustries():
     """
     session = openSession()
     industries = session.query(Industry).order_by(Industry.name.asc())
-    if 'username' in login_session:
-        print("hello")
-        print (login_session['username'])
     if 'username' not in login_session:
         session.close()
         return render_template('publicIndustries.html', industries=industries)
@@ -315,7 +300,7 @@ def createIndustry():
         and then returns to readIndustries html. 
     """
     session = openSession()
-    if request.method == "POST":
+    if request.method == "POST" :
         newIndustry = Industry(name=request.form['name'], user_id=login_session['username'])
         session.add(newIndustry)
         flash('Industy Successfully Added {0}'.format(newIndustry.name))
@@ -339,13 +324,18 @@ def updateIndustry(industry_id):
     """
 
     session = openSession()
+    
     editIndustry = session.query(Industry).filter_by(id=industry_id).one_or_none()
     if request.method == "POST":
-        if request.form['name']:
-            editIndustry.name = request.form['name']
-            flash('Industy Successfully Edited {0}'.format(editIndustry.name))
-            session.commit()
-            session.close()
+        if login_session['username'] == editIndustry.user_id:
+            if request.form['name']:
+                editIndustry.name = request.form['name']
+                flash('Industy Successfully Edited {0}'.format(editIndustry.name))
+                session.commit()
+                session.close()
+                return redirect(url_for('readIndustries'))
+        elif login_session['username'] != editIndustry.user_id:
+            flash("Sorry! You are not authorized to update this industry")
             return redirect(url_for('readIndustries'))
     else:
         return render_template('updateIndustry.html', industry=editIndustry)
@@ -365,18 +355,21 @@ def deleteIndustry(industry_id):
     session = openSession()
     deleteThisIndustry = session.query(Industry).filter_by(
         id=industry_id).one_or_none()
-    if request.method == "POST":
-        if request.form['deleteSelection'] == 'yes':
-            session.delete(deleteThisIndustry)
-            flash("{0} has been sucessfully deleted".format(
-                deleteThisIndustry.name))
-            session.commit()
-            session.close()
-            return redirect(url_for('readIndustries'))
-
-        else:
-            session.close()
-            return redirect(url_for('readIndustries'))
+    if request.method == 'POST':
+        if login_session['username'] == deleteThisIndustry.user_id:
+            if request.form['deleteSelection'] == 'yes':
+                session.delete(deleteThisIndustry)
+                flash("{0} has been sucessfully deleted".format(
+                    deleteThisIndustry.name))
+                session.commit()
+                session.close()
+                return redirect(url_for('readIndustries'))
+            else:
+                session.close()
+                return redirect(url_for('readIndustries'))
+        elif login_session['username'] != deleteThisIndustry.user_id:
+                flash("Sorry! You are not authorized to delete this industry")
+                return redirect(url_for('readIndustries'))
     else:
         return render_template(
             'deleteIndustry.html',
@@ -431,7 +424,7 @@ def createStock(industry_id):
         return render_template('createStock.html', industry_id=industry_id)
 
 
-def createStockObject(ticker, industry_id):
+def createStockObject(ticker, industry_id, user_id):
     """
     createStockObject: Used to create a stock object with updated close price. 
     Args: 
@@ -453,10 +446,11 @@ def createStockObject(ticker, industry_id):
         close_price = df1['Close'].tail(1)
         close_price = str(close_price.to_string(index=False))
         return Stock(ticker=ticker, close_price=close_price,
-                     industry_id=industry_id)
-    except:
-        print "Sorry, we could not find the ticker for that stock"
-
+                     industry_id=industry_id, user_id=user_id)
+    except ValueError as e:
+        flash("Could not update to stock: {0}".format(str(request.form['ticker'])))
+        return render_template('readStocks.html', industry_id=industry_id,
+                                industry=industry)
 
 @app.route('/industries/<int:industry_id>/stocks/<int:stock_id>/update/',
            methods=['GET', 'POST'])
@@ -476,18 +470,27 @@ def updateStock(industry_id, stock_id):
     originalStock = session.query(Stock).filter_by(industry_id=industry_id,
                                                    id=stock_id).one_or_none()
     if request.method == "POST":
-        if request.form['ticker']:
-            updateStock = createStockObject(
-                                        str(request.form['ticker']),
-                                        industry_id=industry_id)
-            updateStock.id = originalStock.id
-            session.delete(originalStock)
-            flash('Stock Successfully Edited {0}'.format(updateStock.ticker))
-            session.add(updateStock)
-            session.commit()
-            session.close()
-            return redirect(url_for('readStocks', industry_id=industry_id,
-                            industry=industry))
+        if login_session['username'] == originalStock.user_id:
+            if request.form['ticker']:
+                try:
+                    updateStock = createStockObject(
+                                                str(request.form['ticker']),
+                                                industry_id=industry_id, user_id=originalStock.user_id)
+                    updateStock.id = originalStock.id
+                    session.delete(originalStock)
+                    flash(' Successfully Edited Stock {0}'.format(updateStock.ticker))
+                    session.add(updateStock)
+                    session.commit()
+                    session.close()
+                    return redirect(url_for('readStocks', industry_id=industry_id,
+                                    industry=industry))
+                except Exception as e:
+                    print(e)
+                    flash("Could not update to stock: {0}".format(str(request.form['ticker'])))
+                    return redirect(url_for('readStocks', industry_id=industry_id))
+        else: 
+            flash("Sorry! You are not authorized to delete this stock")
+            return redirect(url_for('readStocks', industry_id=industry_id))
     else:
         return render_template(
             'updateStock.html', stock=originalStock, stock_id=stock_id,
@@ -512,17 +515,20 @@ def deleteStock(industry_id, stock_id):
         id=stock_id, industry_id=industry_id).one_or_none()
     industry = session.query(Industry).filter_by(id=industry_id).one_or_none()
     if request.method == "POST":
-        if request.form['deleteSelection'] == 'yes':
-            session.delete(deleteThisStock)
-            flash("{0} has been sucessfully deleted".format(
-                deleteThisStock.ticker))
-            session.commit()
-            session.close()
-            return redirect(url_for('readStocks', industry_id=industry_id))
-
-        else:
-            session.close()
-            return redirect(url_for('readStocks', industry_id=industry_id))
+        if login_session['username'] == deleteThisStock.user_id:
+            if request.form['deleteSelection'] == 'yes':
+                session.delete(deleteThisStock)
+                flash("{0} has been sucessfully deleted".format(
+                    deleteThisStock.ticker))
+                session.commit()
+                session.close()
+                return redirect(url_for('readStocks', industry_id=industry_id))
+            else:
+                session.close()
+                return redirect(url_for('readStocks', industry_id=industry_id)) 
+        elif login_session['username'] != deleteThisStock.user_id:
+                flash("Sorry! You are not authorized to delete this stock")
+                return redirect(url_for('readStocks', industry_id=industry_id))
     else:
         return render_template(
             'deleteStock.html', stock=deleteThisStock,

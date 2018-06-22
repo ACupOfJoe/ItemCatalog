@@ -7,28 +7,6 @@ from sqlalchemy import create_engine
 
 
 
-def createUser(login_session):
-    newUser = User(
-        name=login_session['username'], email=login_session['email'],
-        picture=login_session['picture'])
-    session.add(newUser)
-    session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
-    return user.id
-
-
-def getUserInfo(user_id):
-    user = session.query(User).filter_by(email=login_session['email'])
-    return user.id
-
-
-def getUserID(email):
-    try:
-        user = session.query(User).filter_by(email=email).one()
-        return user.id
-    except:
-        return None
-
 
 
 
@@ -36,52 +14,60 @@ Base = declarative_base()
 
 
 class User(Base): 
-	__tablename__ = 'user'
+    """
+    Registered user information is stored in db. 
+    """
+    __tablename__ = 'user'
 
-	id = Column(Integer, primary_key=True)
-	name = Column(String(250), nullable=False) 
-	email = Column(String(250), nullable=False) 
-	picture = Column(String(250), nullable=True)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False) 
+    email = Column(String(250), nullable=False) 
+    picture = Column(String(250), nullable=True)
 
-"""This Industries class holds the information for all of the different industries each stock is included in """ 
 
 class Industry(Base):
-	__tablename__ = 'industry'
+    """
+    Industry information is stored in db 
+    """ 
 
-	id = Column(Integer, primary_key=True)
-	name = Column(String(100), nullable="False")
-	user_id = Column(String, ForeignKey('user.name'))
-	user = relationship(User)
+    __tablename__ = 'industry'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable="False")
+    user_id = Column(String, ForeignKey('user.name'))
+    user = relationship(User)
 
 # Return object data in easily serializeable format"""
-	@property
-	def serialize(self):
-		return { 
-			'name': self.name,
-			'id': self.id
-		}
+    @property
+    def serialize(self):
+        return { 
+            'name': self.name,
+            'id': self.id
+        }
 
-"""This Stock class holds all of the stock tickers and their closing price"""
+
 
 class Stock(Base): 
-	__tablename__ = 'stock'
+    """This Stock class holds all of the stock tickers and their closing price"""
+    __tablename__ = 'stock'
 
-	id = Column(Integer, primary_key=True)
-	ticker = Column(String(10), nullable='False')
-	close_price = Column(String(10), nullable='False')
-	industry_id = Column(Integer, ForeignKey('industry.id'))
+    id = Column(Integer, primary_key=True)
+    ticker = Column(String(10), nullable='False')
+    close_price = Column(String(10), nullable='False')
+    industry_id = Column(Integer, ForeignKey('industry.id'))
+    user_id = Column(String, ForeignKey('user.name'))
 
  # Return obejct data in an easily serializable format
-	@property
-	def serialize(self):
-		return { 
-			'ticker': self.ticker,
-			'id': self.id,
-			'close_price': self.close_price
-			}
+    @property
+    def serialize(self):
+        return { 
+            'ticker': self.ticker,
+            'id': self.id,
+            'close_price': self.close_price,
+            'industry_id': self.industry_id,
+            'user_id': self.user_id
+            }
 
 
 engine = create_engine('sqlite:///stocksbyindustrywithusers.db')
-
-
 Base.metadata.create_all(engine)

@@ -2,6 +2,15 @@
 <head>
 </head>
 <body>
+	{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for category, message in messages %}
+      <li class="{{ category }}">{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 	<h1>Here is the List of Stocks for the {{industry.name}} Industry</h1>
 	{%for stock in stocks%}
 			{{stock.ticker}}
@@ -22,7 +31,7 @@
 	{%if 'username' not in session %}
 	<a href="{{url_for('showLogin')}}">Click Here to Log in </a>
 	{% else %}
-	<a href="{{url_for('disconnect')}}">Disconnect</a>}
+	<a href="{{url_for('disconnect')}}">Disconnect</a>
 	{% endif %} 
 	
 	<a href="{{url_for('createStock', industry_id=industry.id)}}">Create New Stock</a>
