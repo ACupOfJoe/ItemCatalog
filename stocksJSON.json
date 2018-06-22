@@ -1,0 +1,86 @@
+ {
+  "user":[
+  {
+    "name": "Joseph",
+    "email": "joevasquez927@live.com",
+    "picture": "none"
+  }
+],
+
+  "industry": [ 
+    {
+        "name": "Independent Power and Renewable Electricity Producers",
+        "user_id": 1
+    },
+    {
+        "name": "Software",
+        "user_id": 1
+    },
+        {
+        "name": "Trading Companies and Distributors",
+        "user_id": 1
+    }
+],
+
+  "stock":[
+    {
+      "ticker": "HNP",
+      "id": 1,
+      "Close_price": null,
+      "industry_id": 1
+    },
+    {
+      "ticker": "NEP",
+      "id": 2,
+      "Close_price": null,
+      "industry_id": 1
+    },
+    {
+      "ticker": "AZRE",
+      "id": 3,
+      "Close_price": null,
+      "industry_id": 1
+    },
+    {
+      "ticker": "VMW",
+      "id": 4,
+      "Close_price": null,
+      "industry_id": 2
+    },
+
+    {
+      "ticker": "PAYC",
+      "id": 5,
+      "Close_price": null,
+      "industry_id": 2
+    },
+
+    {
+      "ticker": "WK",
+      "id": 6,
+      "Close_price": null,
+      "industry_id": 2
+    },
+
+    {
+      "ticker": "COLM",
+      "id": 7,
+      "Close_price": null,
+      "industry_id": 3
+    },
+
+    {
+      "ticker": "LAKE",
+      "id": 8,
+      "Close_price": null,
+      "industry_id": 3
+    },
+
+    {
+      "ticker": "NKE",
+      "id": 9,
+      "Close_price": null,
+      "industry_id": 3
+    }
+]
+}

@@ -35,7 +35,7 @@ class Industry(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable="False")
     user_id = Column(String, ForeignKey('user.name'))
-    user = relationship(User)
+    user = relationship(User, cascade="all, delete-orphan", single_parent=True)
 
 # Return object data in easily serializeable format"""
     @property

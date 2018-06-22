@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+import json
+
 from database_setup import Base, Industry, Stock, User
 import datetime
 from datetime import timedelta
@@ -54,7 +56,7 @@ def createStockObject(ticker, industry_id):
     return Stock(
         ticker=ticker, close_price=close_price,
         industry_id=industry_id)
-
+"""
 user1 = User(name="Joseph", email="joevasquez927@live.com", picture=None)
 session.add(user1)
 session.commit()
@@ -111,3 +113,33 @@ stock9 = createStockObject('NKE', industry3.id)
 session.add(stock9)
 session.commit()
 print "Added stock9"
+"""
+stockJSON = json.loads(open("stocksJSON.json").read())
+for stock in stockJSON['stock']:
+    ticker = str(stock[u'ticker'])
+    industry_id = str(stock[u'industry_id'])
+    stock_input = createStockObject(
+        ticker,
+        industry_id)
+    print "Successfully added a stock with a ticker and closing price of: " + stock_input.close_price + stock_input.ticker
+    session.add(stock_input)
+    session.commit()
+
+
+for user in stockJSON['user']:
+    name = user[u'name']
+    email = user[u'email']
+    picture = user[u'picture']
+    user_input = User(name=name, email=email, picture=picture) 
+    session.add(user_input)
+    session.commit()
+
+for industry in stockJSON['industry']:
+    name = industry[u'name']
+    user_id = industry[u'user_id']
+    user = session.query(User).filter_by(id=1).one_or_none()
+    industry_input = Industry(
+        name=name, user_id=user_id, 
+        user=user)
+    session.add(industry_input)
+    session.commit()

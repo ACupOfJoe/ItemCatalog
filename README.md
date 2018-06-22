@@ -14,9 +14,10 @@ If not relying on vagrant, set up environment with:
 4. sqlalchemy
 
 ## Additional Packages 
-Using an installer such as "pip" use the commands "sudo pip install <package>" to install the following package. 
-1. pandas
-
+Using an installer such as "pip" use the commands "sudo pip install <package>" to install the following packages. 
+1. sudo pip install numpy
+2. sudo pip install pandas
+3. sudo pip install pandas_datareader
 # How to create the stockbyindustrieswithuser database: 
 ## Setting up the virtual environment: 
 1. Set up the vagrant virtual environment
