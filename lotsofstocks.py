@@ -8,6 +8,7 @@ import datetime
 from datetime import timedelta
 import numpy as np
 import pandas as pd
+# Must change name of file because of version of pandas that is downloaded.
 pd.core.common.is_list_like = pd.api.types.is_list_like
 import pandas_datareader.data as web
 
@@ -27,17 +28,17 @@ DBSession = sessionmaker(bind=engine)
 # session.rollback()
 session = DBSession()
 
+
+
 """This method takes in a ticker symbol uses web.Datareader to find the closing
 price of the stock
 Inputs:
 ticker: String representing the ticker for the stock you want to add
 catalog_id: Integer representing which catalog the stock object belogs to
 
-Results:
+Results: In a stock object that has the closing price of the stock, and industry id
 
 """
-
-
 def createStockObject(ticker, industry_id):
     startTime = datetime.date.today()-datetime.timedelta(days=4)
     print "Readin Data"
@@ -56,64 +57,7 @@ def createStockObject(ticker, industry_id):
     return Stock(
         ticker=ticker, close_price=close_price,
         industry_id=industry_id)
-"""
-user1 = User(name="Joseph", email="joevasquez927@live.com", picture=None)
-session.add(user1)
-session.commit()
-print "Added user1"
 
-industry1 = Industry(
-    name="Independent Power and Renewable Electricity Producers",
-    user_id=user1.id)
-session.add(industry1)
-session.commit()
-print "Added industry1"
-industry2 = Industry(name="Software", user_id=user1.id)
-session.add(industry2)
-session.commit()
-print "Added industry2"
-industry3 = Industry(name="Trading Companies and Distributors",
-                     user_id=user1.id)
-session.add(industry3)
-session.commit()
-print "Added industry3"
-stock1 = createStockObject('HNP', industry1.id)
-session.add(stock1)
-session.commit()
-print "Added stock1"
-stock2 = createStockObject('NEP', industry1.id)
-session.add(stock2)
-session.commit()
-print "Added stock2"
-stock3 = createStockObject('AZRE', industry1.id)
-session.add(stock3)
-session.commit()
-print "Added stock3"
-stock4 = createStockObject('VMW', industry2.id)
-session.add(stock4)
-session.commit()
-print "Added stock4"
-stock5 = createStockObject('PAYC', industry2.id)
-session.add(stock5)
-session.commit()
-print "Added stock5"
-stock6 = createStockObject('WK', industry2.id)
-session.add(stock6)
-session.commit()
-print "Added stock6"
-stock7 = createStockObject('COLM', industry3.id)
-session.add(stock7)
-session.commit()
-print "Added stock7"
-stock8 = createStockObject('LAKE', industry3.id)
-session.add(stock8)
-session.commit()
-print "Added stock8"
-stock9 = createStockObject('NKE', industry3.id)
-session.add(stock9)
-session.commit()
-print "Added stock9"
-"""
 stockJSON = json.loads(open("stocksJSON.json").read())
 for stock in stockJSON['stock']:
     ticker = str(stock[u'ticker'])
@@ -121,7 +65,8 @@ for stock in stockJSON['stock']:
     stock_input = createStockObject(
         ticker,
         industry_id)
-    print "Successfully added a stock with a ticker and closing price of: " + stock_input.close_price + stock_input.ticker
+    print "Successfully added a stock with a ticker and closing price of: "
+    + stock_input.close_price + stock_input.ticker
     session.add(stock_input)
     session.commit()
 
@@ -130,7 +75,7 @@ for user in stockJSON['user']:
     name = user[u'name']
     email = user[u'email']
     picture = user[u'picture']
-    user_input = User(name=name, email=email, picture=picture) 
+    user_input = User(name=name, email=email, picture=picture)
     session.add(user_input)
     session.commit()
 
@@ -139,7 +84,7 @@ for industry in stockJSON['industry']:
     user_id = industry[u'user_id']
     user = session.query(User).filter_by(id=1).one_or_none()
     industry_input = Industry(
-        name=name, user_id=user_id, 
+        name=name, user_id=user_id,
         user=user)
     session.add(industry_input)
     session.commit()
