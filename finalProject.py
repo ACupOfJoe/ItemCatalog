@@ -167,8 +167,8 @@ def gdisconnect():
             'Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s'
-    % login_session['access_token']
+    url = 'https://accounts.google.com/o/oauth2/revoke?token={0}'.format(
+        login_session['access_token'])
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     if result['status'] == '200':
