@@ -43,14 +43,14 @@ def createStockObject(ticker, industry_id):
     startTime = datetime.date.today()-datetime.timedelta(days=4)
     print "Readin Data"
     df1 = web.DataReader(
-                ticker, 'morningstar',
+                ticker, 'robinhood',
                 startTime,
                 datetime.date.today(), retry_count=0).reset_index()
     print "Read Data"
     today = datetime.datetime.today()
     yesterday = today - timedelta(days=2)
     yesterday = yesterday.strftime("%Y-%m-%d")
-    close_price = df1['Close'].tail(1)
+    close_price = df1['close_price'].tail(1)
     close_price = str(close_price.to_string(index=False))
     print "Set up variables"
     print close_price[0:]
@@ -59,13 +59,15 @@ def createStockObject(ticker, industry_id):
         industry_id=industry_id)
 
 stockJSON = json.loads(open("stocksJSON.json").read())
-for stock in stockJSON['stock']:
-    ticker = str(stock[u'ticker'])
-    industry_id = str(stock[u'industry_id'])
+for stock in stockJSON[u'stock']:
+    ticker = str(stock[u'ticker'].upper())
+    print ticker
+    industry_id = str(stock['industry_id'])
+    print industry_id
     stock_input = createStockObject(
         ticker,
         industry_id)
-    print "Successfully added a stock with a ticker and closing price of: "
+    print "Successfully added a stock with a ticker and closing price of: " \
     + stock_input.close_price + stock_input.ticker
     session.add(stock_input)
     session.commit()
@@ -84,7 +86,6 @@ for industry in stockJSON['industry']:
     user_id = industry[u'user_id']
     user = session.query(User).filter_by(id=1).one_or_none()
     industry_input = Industry(
-        name=name, user_id=user_id,
-        user=user)
+        name=name, user_id=user_id)
     session.add(industry_input)
     session.commit()

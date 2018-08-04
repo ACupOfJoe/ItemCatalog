@@ -5,12 +5,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import User, Stock, Industry, Base
 
-import datetime
-from datetime import timedelta
-import pandas as pd
-# Must change name of file because of version of pandas that is downloaded.
-pd.core.common.is_list_like = pd.api.types.is_list_like
-import pandas_datareader.data as web
 
 from flask import session as login_session
 import random
@@ -42,6 +36,7 @@ def showLogin():
     Returns:
         Returns the login page with the state set.
     """
+    print "Checkpoint 0-1"
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
@@ -74,6 +69,7 @@ def disconnect():
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    print "Checkpoint 0"
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -93,7 +89,7 @@ def gconnect():
             json.dumps('Failed to upgrade the authorization code.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-
+    print "Checkpoint 1" 
     # Check that the access token is valid.
     access_token = credentials.access_token
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
@@ -105,7 +101,7 @@ def gconnect():
         response = make_response(json.dumps(result.get('error')), 500)
         response.headers['Content-Type'] = 'application/json'
         return response
-
+    print "Checkpoint 10"
     # Verify that the access token is used for the intended user.
     gplus_id = credentials.id_token['sub']
     if result['user_id'] != gplus_id:
@@ -113,7 +109,7 @@ def gconnect():
             json.dumps("Token's user ID doesn't match given user ID."), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-
+    print "Checkpoint 11"
     # Verify that the access token is valid for this app.
     if result['issued_to'] != CLIENT_ID:
         response = make_response(
@@ -129,6 +125,7 @@ def gconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
 
+    print "Checkpoint 2" 
     # Store the access token in the session for later use.
     login_session['access_token'] = credentials.access_token
     login_session['gplus_id'] = gplus_id
@@ -145,6 +142,7 @@ def gconnect():
     login_session['email'] = data['email']
     login_session['provider'] = 'google'
 
+    print "Checkpoint 3"
     output = ''
     output += '<h1>Welcome, '
     output += login_session['username']

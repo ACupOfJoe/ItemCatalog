@@ -9,78 +9,81 @@
 
   "industry": [ 
     {
-        "name": "Independent Power and Renewable Electricity Producers",
+        "name": "Technology",
         "user_id": 1
     },
     {
-        "name": "Software",
+        "name": "Banking",
         "user_id": 1
     },
         {
-        "name": "Trading Companies and Distributors",
+        "name": "Entertainment",
+        "user_id": 1
+    },        {
+        "name": "Automotive",
         "user_id": 1
     }
 ],
 
   "stock":[
     {
-      "ticker": "HNP",
+      "ticker": "aapl",
       "id": 1,
       "Close_price": null,
       "industry_id": 1
     },
     {
-      "ticker": "NEP",
+      "ticker": "BAC",
       "id": 2,
       "Close_price": null,
-      "industry_id": 1
+      "industry_id": 2
     },
     {
-      "ticker": "AZRE",
+      "ticker": "TWTR",
       "id": 3,
       "Close_price": null,
-      "industry_id": 1
+      "industry_id": 3
     },
     {
-      "ticker": "VMW",
+      "ticker": "TSLA",
       "id": 4,
       "Close_price": null,
-      "industry_id": 2
+      "industry_id": 4
     },
 
     {
-      "ticker": "PAYC",
+      "ticker": "NFLX",
       "id": 5,
-      "Close_price": null,
-      "industry_id": 2
-    },
-
-    {
-      "ticker": "WK",
-      "id": 6,
-      "Close_price": null,
-      "industry_id": 2
-    },
-
-    {
-      "ticker": "COLM",
-      "id": 7,
       "Close_price": null,
       "industry_id": 3
     },
 
     {
-      "ticker": "LAKE",
+      "ticker": "FB",
+      "id": 6,
+      "Close_price": null,
+      "industry_id": 3
+    },
+
+    {
+      "ticker": "MSFT",
+      "id": 7,
+      "Close_price": null,
+      "industry_id": 1
+    },
+
+    {
+      "ticker": "DIS",
       "id": 8,
       "Close_price": null,
       "industry_id": 3
     },
 
     {
-      "ticker": "NKE",
+      "ticker": "F",
       "id": 9,
       "Close_price": null,
-      "industry_id": 3
+      "industry_id": 2
     }
 ]
 }

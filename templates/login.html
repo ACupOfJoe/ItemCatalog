@@ -1,48 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-
   <!--LOAD PRE-REQUISITES FOR GOOGLE SIGN IN -->
-   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
   </script>
-
-<script src="//apis.google.com/js/platform.js?onload=start"> </script>
-
-<!-- END PRE-REQUISITES FOR GOOGLE SIGN IN -->
-
-
+  <script src="//apis.google.com/js/platform.js?onload=start">
+  </script><!-- END PRE-REQUISITES FOR GOOGLE SIGN IN -->
+  <title></title>
 </head>
-
-
-<body>  
-
-
-
-
-
-<!-- GOOGLE PLUS SIGN IN-->
-
-          
-          <div id="signinButton">
-          <span class="g-signin"
-            data-scope="openid email"
-            data-clientid="942758699237-icgkqk67snccrd0cbbgbff5nva2aq0vk.apps.googleusercontent.com"
-            data-redirecturi="postmessage"
-            data-accesstype="offline"
-            data-cookiepolicy="single_host_origin"
-            data-callback="signInCallback"
-            data-approvalprompt="force">
-          </span>
-        </div>
-
-<div id="result"></div>
-
-<script>
-function signInCallback(authResult) {
-  if (authResult['code']) {
-    // Hide the sign-in button now that the user is authorized
-    $('#signinButton').attr('style', 'display: none');
-    // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page
+<body>
+  <!-- GOOGLE PLUS SIGN IN-->
+  <div id="signinButton">
+    <span class="g-signin" data-accesstype="offline" data-approvalprompt="force" data-callback="signInCallback" data-clientid="942758699237-i9cinrm2lljsu5oegfc24uq7o6c269oo.apps.googleusercontent.com" data-cookiepolicy="single_host_origin" data-redirecturi="postmessage" data-scope="openid email"></span>
+  </div>
+  <div id="result"></div>
+  <script>
+  function signInCallback(authResult) {
+    console.log("signInCallback has been Run")
+    console.log(authResult)
+   if (authResult['code']) {
+     console.log("authResult['code'] exists")
+     // Hide the sign-in button now that the user is authorized
+     $('#signinButton').attr('style', 'display: none');
+     // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page
     $.ajax({
       type: 'POST',
       url: '/gconnect?state={{STATE}}',
@@ -54,21 +35,18 @@ function signInCallback(authResult) {
         if (result) {
           $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
          setTimeout(function() {
-    	"authorized "
-          window.location.href = "/industries/";
+          window.location.href = "/industries";
          }, 4000);
           
-      } else if (authResult['error']) {
-    console.log('There was an error: ' + authResult['error']);
-  } else {
-        $('#result').html('Failed to make a server-side call. Check your configuration and console.');
-         }
-      }
-      
-  }); } }
-</script>
-<!--END GOOGLE PLUS SIGN IN -->
-
-  </body>
-
-  </html>
+           
+       } else if (authResult['error']) {
+     console.log('There was an error: ' + authResult['error']);
+   } else {
+         $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+          }
+       }
+       
+   }); } }
+  </script> <!--END GOOGLE PLUS SIGN IN -->
+</body>
+</html>
