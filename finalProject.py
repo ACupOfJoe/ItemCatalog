@@ -4,7 +4,13 @@ from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import User, Stock, Industry, Base
-
+import datetime
+from datetime import timedelta
+import numpy as np
+import pandas as pd
+# Must change name of file because of version of pandas that is downloaded.
+pd.core.common.is_list_like = pd.api.types.is_list_like
+import pandas_datareader.data as web
 
 from flask import session as login_session
 import random
@@ -16,6 +22,8 @@ import httplib2
 import json
 from flask import make_response
 import requests
+
+import os
 
 app = Flask(__name__)
 
@@ -425,7 +433,7 @@ def createStock(industry_id):
         and then returns to readstocks html.
     """
     session = openSession()
-    if request.method == "POST":
+    if request.method == "POST":  
         newStock = createStockObject(
             ticker=str(request.form['ticker']),
             industry_id=industry_id,
@@ -435,8 +443,6 @@ def createStock(industry_id):
         session.commit()
         session.close()
         return redirect(url_for('readStocks', industry_id=industry_id))
-    # except:
-        # return "Error. Possibly your Stock Ticker doesn't exist"
     else:
         return render_template('createStock.html', industry_id=industry_id)
 
@@ -454,17 +460,22 @@ def createStockObject(ticker, industry_id, user_id):
     """
     try:
         startTime = datetime.date.today()-datetime.timedelta(days=4)
+        print "Readin Data"
         df1 = web.DataReader(
-                    ticker, 'morningstar',
+                    ticker, 'robinhood',
                     startTime,
                     datetime.date.today(), retry_count=0).reset_index()
+        print "Read Data"
         today = datetime.datetime.today()
         yesterday = today - timedelta(days=2)
         yesterday = yesterday.strftime("%Y-%m-%d")
-        close_price = df1['Close'].tail(1)
+        close_price = df1['close_price'].tail(1)
         close_price = str(close_price.to_string(index=False))
-        return Stock(ticker=ticker, close_price=close_price,
-                     industry_id=industry_id, user_id=user_id)
+        print "Set up variables"
+        print close_price[0:]
+        return Stock(
+            ticker=ticker, close_price=close_price,
+            industry_id=industry_id, user_id=user_id)
     except ValueError as e:
         flash("Could not update to stock: {0}".format(str(
             request.form['ticker'])))
@@ -564,4 +575,6 @@ def deleteStock(industry_id, stock_id):
 if __name__ == '__main__':
     app.secret_key = "Super Secret Key"
     app.debug = True
-    app.run(host='0.0.0.0', port=5000)
+    app.run(    
+        host=os.getenv('LISTEN', '0.0.0.0'),
+        port=int(os.getenv('PORT', '80')))
